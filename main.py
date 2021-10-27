@@ -291,7 +291,7 @@ def run_seqnetmodel(config):
         seqnet_model = SEQNETMODEL(config, num_items, feature_num)
 
     if torch.cuda.is_available():
-        device_ids_l = [1, 2, 3]
+        device_ids_l = [0, 1, 2, 3]
         seqnet_model = seqnet_model.to(device)
         seqnet_model = torch.nn.DataParallel(seqnet_model, device_ids=device_ids_l)
     optimizer = torch.optim.Adam(seqnet_model.parameters(), lr=1e-3, weight_decay=1e-3)
