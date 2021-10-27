@@ -408,7 +408,7 @@ def run_seqnetmodel(config):
                 labels = batch_label.view(-1)  # B*T
                 loss_ = loss_fun(logits, labels)
 
-                loss = loss_ + loss_0*100
+                loss = loss_ + loss_0*20
 
             epoch_loss += loss.item()
 
