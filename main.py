@@ -17,7 +17,7 @@ import torch.nn.functional as F
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 def run_seqmodel(config):
     if config.data.split("/")[2] != "ML100K":
