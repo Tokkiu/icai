@@ -79,9 +79,9 @@ class SEQNETMODEL(nn.Module):
         self.attention = SumAttention(input_size, hidden_size)
 
     def attention_feature(self, item_embs, emb_0, emb_1, emb_2):
-        # emb_0 = self.attention(emb_0)
-        # emb_1 = self.attention(emb_1)
-        # emb_2 = self.attention(emb_2)
+        emb_0 = self.attention(emb_0)
+        emb_1 = self.attention(emb_1)
+        emb_2 = self.attention(emb_2)
 
         alpha_0 = torch.mean(item_embs * emb_0)
         alpha_1 = torch.mean(item_embs * emb_1)
@@ -96,20 +96,20 @@ class SEQNETMODEL(nn.Module):
         alpha_2 = alpha_2 / (alpha_0 + alpha_1 + alpha_2)
 
         return alpha_0*emb_0 + alpha_1*emb_1 + alpha_2*emb_2
-
+                     # 1024 11    1024 11 4
     def forward(self, item_seq, batch_feature_0=None, batch_feature_1=None, batch_feature_2=None):
         if self.config.model == "gru":
             if batch_feature_1 is None:
-                item_embs = self.gru_items_embeddings(item_seq)
-                fea_emb_0 = self.gru_fea_embeddings0(batch_feature_0)
-                emb_feature = self.attention(fea_emb_0)
+                item_embs = self.gru_items_embeddings(item_seq) #1024 11 256
+                fea_emb_0 = self.gru_fea_embeddings0(batch_feature_0) #1024 11 4 256
+                emb_feature = self.attention(fea_emb_0) # 1024 11 256
                 item_embs = 0.5 * item_embs + 0.5 * emb_feature
                 #item_embs = item_embs*torch.sigmoid(self.m1(item_embs)+self.m2(emb_feature))
                 output = self.rnn(item_embs)
                 output0 = self.rnn0(emb_feature)
                 #output = torch.cat((output, output0), 2)
                 return self.mlp_gru(output), self.mlp_gru_fea0(output0)
-
+                # 1024 512
             if batch_feature_1 is not None:
                 item_embs = self.gru_items_embeddings(item_seq)
                 fea_emb_0 = self.gru_fea_embeddings0(batch_feature_0)
@@ -133,15 +133,15 @@ class SEQNETMODEL(nn.Module):
 
         elif self.config.model == "bert":
             if batch_feature_1 is None:
-                item_embs = self.bert_items_embeddings(item_seq)
-                item_mask = (item_seq > 0).unsqueeze(1).repeat(1, item_seq.size(1), 1).unsqueeze(1)
-                fea_emb_0 = self.bert_fea_embeddings0(batch_feature_0)
-                emb_feature = self.attention(fea_emb_0)
-                #item_embs = 0.5 * item_embs + 0.5 * emb_feature
-                item_embs = item_embs*torch.sigmoid(self.m1(item_embs)+self.m2(emb_feature))
-                output = self.bert(item_embs, item_mask)
-                output0 = self.bert0(emb_feature, item_mask)
-                output = torch.cat((output, output0), 2)
+                item_embs = self.bert_items_embeddings(item_seq) # 1024 8 256
+                item_mask = (item_seq > 0).unsqueeze(1).repeat(1, item_seq.size(1), 1).unsqueeze(1) # 1024 1 8 8
+                fea_emb_0 = self.bert_fea_embeddings0(batch_feature_0) # 1024 8 4 256
+                emb_feature = self.attention(fea_emb_0) # 1024 8 256
+                item_embs = 0.5 * item_embs + 0.5 * emb_feature
+                # item_embs = item_embs*torch.sigmoid(self.m1(item_embs)+self.m2(emb_feature)) # 1024 8 256
+                output = self.bert(item_embs, item_mask) # 1024 8 256
+                output0 = self.bert0(emb_feature, item_mask) # 1024 8 256
+                # output = torch.cat((output, output0), 2) # 1024 8 512
                 return self.mlp_bert(output), self.mlp_bert_fea0(output0)
 
             if batch_feature_1 is not None:
