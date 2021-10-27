@@ -547,7 +547,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     # data arguments
-    parser.add_argument('--L', type=int, default=10)
+    parser.add_argument('--L', type=int, default=7)
     parser.add_argument('--T', type=int, default=1)
 
     # train arguments
